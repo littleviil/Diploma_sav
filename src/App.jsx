@@ -77,13 +77,21 @@ export default function App() {
     [session, store.users],
   );
 
-  const login = (email, password, role) => {
-    const user = store.users.find(
-      (item) => item.email === email.trim() && item.password === password && item.role === role,
-    );
+  const login = (identifier, password, role) => {
+    const user = store.users.find((item) => {
+      if (item.password !== password || item.role !== role) {
+        return false;
+      }
+
+      if (role === 'employee') {
+        return item.loginName === identifier.trim();
+      }
+
+      return item.email === identifier.trim();
+    });
 
     if (!user) {
-      return { ok: false, message: 'Проверьте почту, пароль и выбранную роль.' };
+      return { ok: false, message: 'Проверьте логин/почту, пароль и выбранную роль.' };
     }
 
     setSession({ userId: user.id, role: user.role });

@@ -594,7 +594,8 @@ export function AuthPage({ user, login, registerPayer, onLogout }) {
       return;
     }
 
-    const signed = login(form.email, form.password, role);
+    const identifier = role === 'employee' ? form.loginName : form.email;
+    const signed = login(identifier, form.password, role);
     if (!signed.ok) {
       setError(signed.message);
       return;
