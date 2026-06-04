@@ -109,9 +109,13 @@ export function HomePage({ store, user, onLogout }) {
               <UserRound size={18} />
               Войти плательщику
             </Link>
+            <Link to="/auth?role=employee&employeeType=accountant" className="primary-link secondary-action">
+              <BarChart3 size={18} />
+              Войти бухгалтеру
+            </Link>
             <Link to="/auth?role=employee" className="primary-link secondary-action">
               <BarChart3 size={18} />
-              Войти диспетчеру/бухгалтеру
+              Войти диспетчеру
             </Link>
           </div>
         </section>
@@ -490,9 +494,25 @@ export function AuthPage({ user, login, registerPayer, onLogout }) {
   const navigate = useNavigate();
   const params = new URLSearchParams(window.location.search);
   const roleParam = params.get('role');
+  const employeeTypeParam = params.get('employeeType');
   const initialRole =
-    roleParam === 'employee' || roleParam === 'companyAdmin' ? roleParam : 'payer';
+    roleParam === 'companyAdmin'
+      ? 'companyAdmin'
+      : roleParam === 'payer'
+        ? 'payer'
+        : roleParam === 'employee' || roleParam === 'accountant'
+          ? 'employee'
+          : 'payer';
+  const initialEmployeeType =
+    employeeTypeParam === 'accountant' || employeeTypeParam === 'dispatcher'
+      ? employeeTypeParam
+      : roleParam === 'accountant'
+        ? 'accountant'
+        : 'dispatcher';
   const [role, setRole] = useState(initialRole);
+  const [employeeType, setEmployeeType] = useState(
+    initialRole === 'employee' ? initialEmployeeType : 'dispatcher',
+  );
   const [mode, setMode] = useState('login');
   const [error, setError] = useState('');
   const [invalidFields, setInvalidFields] = useState([]);
@@ -502,7 +522,12 @@ export function AuthPage({ user, login, registerPayer, onLogout }) {
   const companySearchRef = useRef(null);
   const [form, setForm] = useState({
     name: 'Мария Орлова',
-    loginName: 'orlovam',
+    loginName:
+      initialRole === 'payer'
+        ? 'orlovam'
+        : employeeType === 'accountant'
+          ? 'accountant'
+          : 'dispatcher',
     email: '1@gmail.com',
     password: '111111',
     accountNumber: '407900000001',
@@ -579,10 +604,27 @@ export function AuthPage({ user, login, registerPayer, onLogout }) {
 
   const switchToEmployee = () => {
     setRole('employee');
+    setEmployeeType('dispatcher');
     setMode('login');
     setForm((current) => ({
       ...current,
       loginName: 'dispatcher',
+      email: '1@gmail.com',
+      password: '111111',
+      company: 'УК Комфортный дом',
+    }));
+    setCompanyQuery('УК Комфортный дом');
+    setError('');
+    setInvalidFields([]);
+  };
+
+  const switchToAccountant = () => {
+    setRole('employee');
+    setEmployeeType('accountant');
+    setMode('login');
+    setForm((current) => ({
+      ...current,
+      loginName: 'accountant',
       email: '1@gmail.com',
       password: '111111',
       company: 'УК Комфортный дом',
@@ -634,12 +676,16 @@ export function AuthPage({ user, login, registerPayer, onLogout }) {
             {role === 'companyAdmin'
               ? 'Вход администратора компании'
               : role === 'employee'
-                ? 'Вход диспетчера или бухгалтера'
+                ? employeeType === 'accountant'
+                  ? 'Вход бухгалтера'
+                  : 'Вход диспетчера'
                 : 'Вход плательщика'}
           </h1>
           <p>
             {role !== 'payer'
-              ? 'Выберите компанию и войдите по логину, почте и паролю.'
+              ? employeeType === 'accountant'
+                ? 'Войдите как бухгалтер по логину, почте и паролю.'
+                : 'Выберите компанию и войдите по логину, почте и паролю.'
               : 'Войдите по лицевому счету, логину, почте и паролю.'}
           </p>
           <form className="stack-form" onSubmit={submit}>
@@ -771,7 +817,9 @@ export function AuthPage({ user, login, registerPayer, onLogout }) {
                 : role === 'companyAdmin'
                   ? 'Войти как администратор'
                   : role === 'employee'
-                    ? 'Войти как диспетчер/бухгалтер'
+                    ? employeeType === 'accountant'
+                      ? 'Войти как бухгалтер'
+                      : 'Войти как диспетчер'
                     : 'Войти'}
             </button>
           </form>
@@ -791,7 +839,10 @@ export function AuthPage({ user, login, registerPayer, onLogout }) {
                   Регистрация
                 </button>
                 <button type="button" className="underlined-action" onClick={switchToEmployee}>
-                  войти как диспетчер/бухгалтер
+                  войти как диспетчер
+                </button>
+                <button type="button" className="underlined-action" onClick={switchToAccountant}>
+                  войти как бухгалтер
                 </button>
                 <button type="button" className="underlined-action" onClick={switchToCompanyAdmin}>
                   войти как администратор компании
@@ -809,6 +860,12 @@ export function AuthPage({ user, login, registerPayer, onLogout }) {
                   }}
                 >
                   Регистрация
+                </button>
+                <button type="button" className="underlined-action" onClick={switchToEmployee}>
+                  войти как диспетчер
+                </button>
+                <button type="button" className="underlined-action" onClick={switchToAccountant}>
+                  войти как бухгалтер
                 </button>
                 <button type="button" className="underlined-action" onClick={switchToPayer}>
                   войти как плательщик
